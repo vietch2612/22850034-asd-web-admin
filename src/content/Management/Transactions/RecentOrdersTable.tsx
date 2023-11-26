@@ -1,7 +1,7 @@
-import { FC, ChangeEvent, useState } from 'react';
-import { format } from 'date-fns';
-import numeral from 'numeral';
-import PropTypes from 'prop-types';
+import { FC, ChangeEvent, useState } from "react";
+import { format } from "date-fns";
+import numeral from "numeral";
+import PropTypes from "prop-types";
 import {
   Tooltip,
   Divider,
@@ -22,15 +22,15 @@ import {
   MenuItem,
   Typography,
   useTheme,
-  CardHeader
-} from '@mui/material';
+  CardHeader,
+} from "@mui/material";
 
-import Label from '@/components/Label';
-import { Trip, TripStatus } from '@/models/trip';
+import Label from "@/components/Label";
+import { Trip, TripStatus } from "@/models/trip";
 
 interface RecentOrdersTableProps {
   className?: string;
-  cryptoOrders: Trip[];
+  tripOrders: Trip[];
 }
 
 interface Filters {
@@ -39,30 +39,30 @@ interface Filters {
 
 const getStatusLabel = (tripStatus: TripStatus): JSX.Element => {
   const map = {
-    submitted: {
-      text: 'Submitted',
-      color: 'warning'
+    0: {
+      text: "Submitted",
+      color: "warning",
     },
-    allocated: {
-      text: 'warning',
-      color: 'success'
+    1: {
+      text: "warning",
+      color: "success",
     },
-    arrived: {
-      text: 'Arrived',
-      color: 'warning'
+    2: {
+      text: "Arrived",
+      color: "warning",
     },
-    driving: {
-      text: 'Driving',
-      color: 'warning'
+    3: {
+      text: "Driving",
+      color: "warning",
     },
-    completed: {
-      text: 'Completed',
-      color: 'success'
+    4: {
+      text: "Completed",
+      color: "success",
     },
-    cancelled: {
-      text: 'Cancelled',
-      color: 'error'
-    }
+    5: {
+      text: "Cancelled",
+      color: "error",
+    },
   };
 
   const { text, color }: any = map[tripStatus];
@@ -70,11 +70,11 @@ const getStatusLabel = (tripStatus: TripStatus): JSX.Element => {
   return <Label color={color}>{text}</Label>;
 };
 
-const applyFilters = (cryptoOrders: Trip[], filters: Filters): Trip[] => {
-  return cryptoOrders.filter((cryptoOrder) => {
+const applyFilters = (tripOrders: Trip[], filters: Filters): Trip[] => {
+  return tripOrders.filter((tripOrder) => {
     let matches = true;
 
-    if (filters.status && cryptoOrder.status !== filters.status) {
+    if (filters.status && tripOrder.status !== filters.status) {
       matches = false;
     }
 
@@ -83,57 +83,57 @@ const applyFilters = (cryptoOrders: Trip[], filters: Filters): Trip[] => {
 };
 
 const applyPagination = (
-  cryptoOrders: Trip[],
+  tripOrders: Trip[],
   page: number,
   limit: number
 ): Trip[] => {
-  return cryptoOrders.slice(page * limit, page * limit + limit);
+  return tripOrders.slice(page * limit, page * limit + limit);
 };
 
-const RecentOrdersTable: FC<RecentOrdersTableProps> = ({ cryptoOrders }) => {
+const RecentOrdersTable: FC<RecentOrdersTableProps> = ({ tripOrders }) => {
   const [page, setPage] = useState<number>(0);
   const [limit, setLimit] = useState<number>(5);
   const [filters, setFilters] = useState<Filters>({
-    status: null
+    status: null,
   });
 
   const statusOptions = [
     {
-      id: 'all',
-      name: 'All'
+      id: "all",
+      name: "All",
     },
     {
-      id: 'submitted',
-      name: 'Submitted'
+      id: "submitted",
+      name: "Submitted",
     },
     {
-      id: 'arrived',
-      name: 'Arrivied'
+      id: "arrived",
+      name: "Arrivied",
     },
     {
-      id: 'driving',
-      name: 'Driving'
+      id: "driving",
+      name: "Driving",
     },
     {
-      id: 'completed',
-      name: 'Completed'
+      id: "completed",
+      name: "Completed",
     },
     {
-      id: 'cancelled',
-      name: 'Cancelled'
-    }
+      id: "cancelled",
+      name: "Cancelled",
+    },
   ];
 
   const handleStatusChange = (e: ChangeEvent<HTMLInputElement>): void => {
     let value = null;
 
-    if (e.target.value !== 'all') {
+    if (e.target.value !== "all") {
       value = e.target.value;
     }
 
     setFilters((prevFilters) => ({
       ...prevFilters,
-      status: value
+      status: value,
     }));
   };
 
@@ -145,12 +145,8 @@ const RecentOrdersTable: FC<RecentOrdersTableProps> = ({ cryptoOrders }) => {
     setLimit(parseInt(event.target.value));
   };
 
-  const filteredCryptoOrders = applyFilters(cryptoOrders, filters);
-  const paginatedCryptoOrders = applyPagination(
-    filteredCryptoOrders,
-    page,
-    limit
-  );
+  const filteredTripOrder = applyFilters(tripOrders, filters);
+  const paginatedCryptoOrders = applyPagination(filteredTripOrder, page, limit);
 
   return (
     <Card>
@@ -161,7 +157,7 @@ const RecentOrdersTable: FC<RecentOrdersTableProps> = ({ cryptoOrders }) => {
               <FormControl fullWidth variant="outlined">
                 <InputLabel>Status</InputLabel>
                 <Select
-                  value={filters.status || 'all'}
+                  value={filters.status || "all"}
                   onChange={handleStatusChange}
                   label="Status"
                   autoWidth
@@ -193,10 +189,10 @@ const RecentOrdersTable: FC<RecentOrdersTableProps> = ({ cryptoOrders }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {paginatedCryptoOrders.map((cryptoOrder) => {
-              cryptoOrder.tripId;
+            {paginatedCryptoOrders.map((tripOrder) => {
+              // tripOrder.id;
               return (
-                <TableRow hover key={cryptoOrder.tripId}>
+                <TableRow hover key={tripOrder.id}>
                   <TableCell>
                     <Typography
                       variant="body1"
@@ -204,23 +200,11 @@ const RecentOrdersTable: FC<RecentOrdersTableProps> = ({ cryptoOrders }) => {
                       color="text.primary"
                       gutterBottom
                     >
-                      {cryptoOrder.tripId}
+                      {tripOrder.id}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {format(cryptoOrder.tripStartAt, 'MMMM dd yyyy')}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography
-                      variant="body1"
-                      fontWeight="bold"
-                      color="text.primary"
-                      gutterBottom
-                    >
-                      {cryptoOrder.customer.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {cryptoOrder.customer.phoneNumber}
+                      {/* {format(tripOrder.tripStartAt, "MMMM dd yyyy")} */}
+                      {tripOrder.createdAt}
                     </Typography>
                   </TableCell>
                   <TableCell>
@@ -230,36 +214,49 @@ const RecentOrdersTable: FC<RecentOrdersTableProps> = ({ cryptoOrders }) => {
                       color="text.primary"
                       gutterBottom
                     >
-                      {cryptoOrder.carType.value}
+                      {tripOrder.Customer.name}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {cryptoOrder.serviceType.value}
+                      {tripOrder.Customer.phoneNumber}
                     </Typography>
                   </TableCell>
-                  <TableCell style={{ maxWidth: '200px' }}>
+                  <TableCell>
                     <Typography
                       variant="body1"
                       fontWeight="bold"
                       color="text.primary"
                       gutterBottom
                     >
-                      {cryptoOrder.from.mainText}
+                      {tripOrder.Driver.Car.name}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {cryptoOrder.from.secondaryText}
+                      {tripOrder.ServiceType.name}
                     </Typography>
                   </TableCell>
-                  <TableCell style={{ maxWidth: '200px' }}>
+                  <TableCell style={{ maxWidth: "200px" }}>
                     <Typography
                       variant="body1"
                       fontWeight="bold"
                       color="text.primary"
                       gutterBottom
                     >
-                      {cryptoOrder.to.mainText}
+                      {tripOrder.pickupLocation}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {cryptoOrder.to.secondaryText}
+                      {tripOrder.pickupLocation}
+                    </Typography>
+                  </TableCell>
+                  <TableCell style={{ maxWidth: "200px" }}>
+                    <Typography
+                      variant="body1"
+                      fontWeight="bold"
+                      color="text.primary"
+                      gutterBottom
+                    >
+                      {tripOrder.dropoffLocation}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {tripOrder.dropoffLocation}
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
@@ -269,17 +266,15 @@ const RecentOrdersTable: FC<RecentOrdersTableProps> = ({ cryptoOrders }) => {
                       color="text.primary"
                       gutterBottom
                     >
-                      {cryptoOrder.distanceText}
+                      {tripOrder.distance}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {numeral(cryptoOrder.fare).format(
-                        `${cryptoOrder.fare}0,0`
-                      )}{' '}
+                      {numeral(tripOrder.fare).format(`${tripOrder.fare}0,0`)}{" "}
                       VND
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
-                    {getStatusLabel(cryptoOrder.status)}
+                    {getStatusLabel(tripOrder.status)}
                   </TableCell>
                 </TableRow>
               );
@@ -290,7 +285,7 @@ const RecentOrdersTable: FC<RecentOrdersTableProps> = ({ cryptoOrders }) => {
       <Box p={2}>
         <TablePagination
           component="div"
-          count={filteredCryptoOrders.length}
+          count={filteredTripOrder.length}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleLimitChange}
           page={page}
@@ -303,11 +298,11 @@ const RecentOrdersTable: FC<RecentOrdersTableProps> = ({ cryptoOrders }) => {
 };
 
 RecentOrdersTable.propTypes = {
-  cryptoOrders: PropTypes.array.isRequired
+  tripOrders: PropTypes.array.isRequired,
 };
 
 RecentOrdersTable.defaultProps = {
-  cryptoOrders: []
+  tripOrders: [],
 };
 
 export default RecentOrdersTable;

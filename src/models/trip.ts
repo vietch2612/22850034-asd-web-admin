@@ -21,40 +21,46 @@ export interface Type {
 }
 
 export interface Trip {
-  driver: {
+  id: string;
+  Driver: {
     id: string;
     name: string;
-    licensePlate: string;
+    licensePlateNumber: string;
     carInfo: string;
     phoneNumber: string;
     avatarUrl: string;
-    rating: string;
-    currentLocation: {
-      latitude: number;
-      longitude: number;
-      address: string;
+    Car: {
+      name: string;
+    };
+    DriverLocations: {
+      lat: number;
+      long: number;
     };
   };
-  customer: {
+  Customer: {
     id: string;
     name: string;
     phoneNumber: string;
     avatarUrl: string;
-    currentLocation: {
-      latitude: number;
-      longitude: number;
-      address: string;
-    };
+    email: string;
   };
-  id: string;
-  from: Location;
-  to: Location;
+  pickupLocation: string;
+  pickupLocationLat: number;
+  pickupLocationLong: number;
+  dropoffLocation: string;
+  dropoffLocationLat: number;
+  dropoffLocationLong: number;
   serviceType: Type;
   carType: Type;
-  distanceMeters: number;
-  distanceText: string;
+  distance: number;
   status: TripStatus;
   fare: number;
-  tripStartAt: number;
-  tripEndAt: number;
+  startTime: string;
+  endTime: string;
+  createdAt: string;
+  updatedAt: string;
+  ServiceType: {
+    name: string;
+    numberOfSeat: number;
+  };
 }
