@@ -1,12 +1,11 @@
-import Head from 'next/head';
-import SidebarLayout from '@/layouts/SidebarLayout';
-import PageTitle from '@/components/PageTitle';
+import Head from "next/head";
+import SidebarLayout from "@/layouts/SidebarLayout";
+import PageTitle from "@/components/PageTitle";
+import MenuItem from "@mui/material/MenuItem";
+import PageTitleWrapper from "@/components/PageTitleWrapper";
 
-import { useState } from 'react';
+import { useState } from "react";
 
-import MenuItem from '@mui/material/MenuItem';
-
-import PageTitleWrapper from '@/components/PageTitleWrapper';
 import {
   Container,
   Grid,
@@ -14,63 +13,42 @@ import {
   CardHeader,
   CardContent,
   Divider,
-  Button
-} from '@mui/material';
-import Footer from '@/components/Footer';
-
-import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
-
-const currencies = [
-  {
-    value: 'USD',
-    label: '$'
-  },
-  {
-    value: 'EUR',
-    label: '€'
-  },
-  {
-    value: 'BTC',
-    label: '฿'
-  },
-  {
-    value: 'JPY',
-    label: '¥'
-  }
-];
+  Button,
+} from "@mui/material";
+import Footer from "@/components/Footer";
+import Box from "@mui/material/Box";
+import TextField from "@mui/material/TextField";
+import GoogleMaps from "@/components/GoogleMapsAutocomplete";
 
 const carTypes = [
   {
-    value: '1',
-    label: '4-Seat'
+    value: "1",
+    label: "4-Seat",
   },
   {
-    value: '2',
-    label: '7-Seat'
-  }
+    value: "2",
+    label: "7-Seat",
+  },
 ];
 
 const serviceTypes = [
   {
-    value: '1',
-    label: 'Regular'
+    value: "1",
+    label: "Regular",
   },
   {
-    value: '2',
-    label: 'VIP'
-  }
+    value: "2",
+    label: "VIP",
+  },
 ];
 
 function CreateTrip() {
   const [tripType, setTripType] = useState();
-
   const handleChange = (event) => {
     setTripType(event.target.value);
   };
 
   const [tripServiceType, setValue] = useState();
-
   const handleChangeServiceType = (event) => {
     setValue(event.target.value);
   };
@@ -82,7 +60,7 @@ function CreateTrip() {
       </Head>
       <PageTitleWrapper>
         <PageTitle
-          heading="Creating a new trip"
+          heading="Tạo chuyến đi mới"
           subHeading="Creating a new trip for whose does not have the HCMUSCab app"
         />
       </PageTitleWrapper>
@@ -102,7 +80,7 @@ function CreateTrip() {
                 <Box
                   component="form"
                   sx={{
-                    '& .MuiTextField-root': { m: 1, width: '50ch' }
+                    "& .MuiTextField-root": { m: 1, width: "50ch" },
                   }}
                   noValidate
                   autoComplete="off"
@@ -135,24 +113,16 @@ function CreateTrip() {
                 <Box
                   component="form"
                   sx={{
-                    '& .MuiTextField-root': { m: 1, width: '102ch' }
+                    "& .MuiTextField-root": { m: 1, width: "102ch" },
                   }}
                   noValidate
                   autoComplete="off"
                 >
                   <div>
-                    <TextField
-                      id="outlined-search"
-                      label="Pickup Address"
-                      type="search"
-                    />
+                    <GoogleMaps />
                   </div>
                   <div>
-                    <TextField
-                      id="outlined-search"
-                      label="Dropoff Address"
-                      type="search"
-                    />
+                    <GoogleMaps />
                   </div>
                 </Box>
               </CardContent>
@@ -166,7 +136,7 @@ function CreateTrip() {
                 <Box
                   component="form"
                   sx={{
-                    '& .MuiTextField-root': { m: 1, width: '50ch' }
+                    "& .MuiTextField-root": { m: 1, width: "50ch" },
                   }}
                   noValidate
                   autoComplete="off"
@@ -199,7 +169,7 @@ function CreateTrip() {
                       ))}
                     </TextField>
                   </div>
-                  {tripServiceType === '2' && ( // Only display for VIP serviceType
+                  {tripServiceType === "2" && ( // Only display for VIP serviceType
                     <div>
                       <TextField
                         id="scheduledTime"
