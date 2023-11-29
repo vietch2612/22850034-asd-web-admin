@@ -1,26 +1,14 @@
-import * as React from "react";
+// GoogleMapAutocomplete.tsx
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import parse from "autosuggest-highlight/parse";
 import { debounce } from "@mui/material/utils";
-
-const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
-function loadScript(src: string, position: HTMLElement | null, id: string) {
-  console.log("ENV: ", process.env);
-  if (!position) {
-    return;
-  }
-
-  const script = document.createElement("script");
-  script.setAttribute("async", "");
-  script.setAttribute("id", id);
-  script.src = src;
-  position.appendChild(script);
-}
-
-const autocompleteService = { current: null };
+import axios from "axios"; // Import axios
 
 interface MainTextMatchedSubstrings {
   offset: number;
@@ -36,27 +24,40 @@ interface StructuredFormatting {
 interface PlaceType {
   description: string;
   structured_formatting: StructuredFormatting;
+  place_id: string;
+  location: Location;
 }
 
-export default function GoogleMaps() {
-  const [value, setValue] = React.useState<PlaceType | null>(null);
-  const [inputValue, setInputValue] = React.useState("");
-  const [options, setOptions] = React.useState<readonly PlaceType[]>([]);
-  const loaded = React.useRef(false);
+interface GoogleMapAutocompleteProps {
+  label?: string;
+  onPlaceSelect: (location: PlaceType) => void;
+}
 
-  if (typeof window !== "undefined" && !loaded.current) {
-    if (!document.querySelector("#google-maps")) {
-      loadScript(
-        `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places&components=country:VN`,
-        document.querySelector("head"),
-        "google-maps"
-      );
-    }
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-    loaded.current = true;
+function loadScript(src: string, position: HTMLElement | null, id: string) {
+  if (!position) {
+    return;
   }
 
-  const fetch = React.useMemo(
+  const script = document.createElement("script");
+  script.setAttribute("async", "");
+  script.setAttribute("id", id);
+  script.src = src;
+  position.appendChild(script);
+}
+
+const GoogleMapAutocomplete: React.FC<GoogleMapAutocompleteProps> = ({
+  label = "Add a location",
+  onPlaceSelect,
+}) => {
+  const [value, setValue] = useState<PlaceType | null>(null);
+  const [inputValue, setInputValue] = useState("");
+  const [options, setOptions] = useState<readonly PlaceType[]>([]);
+  const loaded = useRef(false);
+  const autocompleteService = useRef<any>(null);
+
+  const fetch = useMemo(
     () =>
       debounce(
         (
@@ -71,9 +72,41 @@ export default function GoogleMaps() {
         400
       ),
     []
-  );
+  ) as (
+    request: { input: string },
+    callback: (results?: readonly PlaceType[]) => void
+  ) => void;
 
-  React.useEffect(() => {
+  useEffect(() => {
+    let active = true;
+
+    const loadGoogleMapsScript = () => {
+      if (!loaded.current && (window as any).google) {
+        autocompleteService.current = new (
+          window as any
+        ).google.maps.places.AutocompleteService();
+        loaded.current = true;
+      }
+    };
+
+    if (typeof window !== "undefined" && !loaded.current) {
+      if (!document.querySelector("#google-maps")) {
+        loadScript(
+          `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`,
+          document.querySelector("head"),
+          "google-maps"
+        );
+      }
+
+      loadGoogleMapsScript();
+    }
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
     let active = true;
 
     if (!autocompleteService.current && (window as any).google) {
@@ -111,9 +144,31 @@ export default function GoogleMaps() {
     };
   }, [value, inputValue, fetch]);
 
+  const fetchPlaceDetails = async (placeId: string) => {
+    try {
+      const response = await axios.get(
+        `https://maps.googleapis.com/maps/api/place/details/json?key=${GOOGLE_MAPS_API_KEY}&place_id=${placeId}`
+      );
+
+      const placeDetails = response.data.result;
+      const { geometry } = placeDetails;
+      const { location } = geometry;
+
+      const latitude = location.lat;
+      const longitude = location.lng;
+
+      console.log("Place Details:", placeDetails);
+      console.log("Latitude:", latitude);
+      console.log("Longitude:", longitude);
+      return location;
+    } catch (error) {
+      console.error("Error fetching place details:", error);
+    }
+  };
+
   return (
     <Autocomplete
-      id="google-map-api"
+      id="google-map-demo"
       sx={{ width: 300 }}
       getOptionLabel={(option) =>
         typeof option === "string" ? option : option.description
@@ -125,15 +180,22 @@ export default function GoogleMaps() {
       filterSelectedOptions
       value={value}
       noOptionsText="No locations"
-      onChange={(event: any, newValue: PlaceType | null) => {
+      onChange={async (event: any, newValue: PlaceType | null) => {
         setOptions(newValue ? [newValue, ...options] : options);
         setValue(newValue);
+
+        if (newValue) {
+          console.log("Selected Place:", newValue);
+          const location = await fetchPlaceDetails(newValue.place_id);
+          newValue.location = location;
+          onPlaceSelect(newValue);
+        }
       }}
       onInputChange={(event, newInputValue) => {
         setInputValue(newInputValue);
       }}
       renderInput={(params) => (
-        <TextField {...params} label="Vui lòng nhập địa chỉ" fullWidth />
+        <TextField {...params} label={label} fullWidth />
       )}
       renderOption={(props, option) => {
         const matches =
@@ -149,16 +211,33 @@ export default function GoogleMaps() {
 
         return (
           <li {...props}>
-            {/* Customize how the option is displayed */}
-            <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-              {option.description}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {option.structured_formatting.secondary_text}
-            </Typography>
+            <Grid container alignItems="center">
+              <Grid item sx={{ display: "flex", width: 44 }}>
+                <LocationOnIcon sx={{ color: "text.secondary" }} />
+              </Grid>
+              <Grid
+                item
+                sx={{ width: "calc(100% - 44px)", wordWrap: "break-word" }}
+              >
+                {parts.map((part, index) => (
+                  <Box
+                    key={index}
+                    component="span"
+                    sx={{ fontWeight: part.highlight ? "bold" : "regular" }}
+                  >
+                    {part.text}
+                  </Box>
+                ))}
+                <Typography variant="body2" color="text.secondary">
+                  {option.structured_formatting.secondary_text}
+                </Typography>
+              </Grid>
+            </Grid>
           </li>
         );
       }}
     />
   );
-}
+};
+
+export default GoogleMapAutocomplete;

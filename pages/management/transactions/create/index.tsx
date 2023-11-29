@@ -3,8 +3,13 @@ import SidebarLayout from "@/layouts/SidebarLayout";
 import PageTitle from "@/components/PageTitle";
 import MenuItem from "@mui/material/MenuItem";
 import PageTitleWrapper from "@/components/PageTitleWrapper";
+import Footer from "@/components/Footer";
+import Box from "@mui/material/Box";
+import TextField from "@mui/material/TextField";
+import GoogleMapsAutocomplete from "@/components/GoogleMapsAutocomplete";
 
-import { useState } from "react";
+import { fetchDirection } from "pages/api/GoogleMapsApi";
+import { fetchCalculateFare, fetchCustomerInfo } from "pages/api/BackendApi";
 
 import {
   Container,
@@ -15,10 +20,9 @@ import {
   Divider,
   Button,
 } from "@mui/material";
-import Footer from "@/components/Footer";
-import Box from "@mui/material/Box";
-import TextField from "@mui/material/TextField";
-import GoogleMaps from "@/components/GoogleMapsAutocomplete";
+
+import { useEffect, useState } from "react";
+import { set } from "nprogress";
 
 const carTypes = [
   {
@@ -43,6 +47,55 @@ const serviceTypes = [
 ];
 
 function CreateTrip() {
+  const [pickupLocation, setPickupLocation] = useState(null);
+  const [destinationLocation, setDestinationLocation] = useState(null);
+  const [tripFare, setTripFare] = useState(null);
+  const [tripDistance, setTripDistance] = useState(null);
+  const [customerPhoneNumber, setCustomerPhoneNumber] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [customerId, setCustomerId] = useState(null);
+
+  const handleLocationSelect = (location, isDestination) => {
+    console.log("handleLocationSelect called");
+    if (isDestination) {
+      setDestinationLocation(location);
+    } else {
+      setPickupLocation(location);
+    }
+
+    console.log("Pickup Location:", pickupLocation);
+    console.log("Dropoff Location:", destinationLocation);
+  };
+
+  const handlePhoneNumberChange = async (event) => {
+    const phoneNumber = event.target.value;
+    setCustomerPhoneNumber(phoneNumber);
+
+    try {
+      // Fetch customer information based on phone number
+      const customerInfo = await fetchCustomerInfo(phoneNumber);
+
+      if (!customerInfo) {
+        setCustomerName("");
+      }
+
+      // Update state with the fetched customer information
+      // For example, if customerInfo has a 'name' property:
+      setCustomerName(customerInfo["name"]);
+      console.log("Customer Name:", customerName);
+    } catch (error) {
+      // Handle errors, e.g., display an error message to the user
+    }
+  };
+
+  useEffect(() => {
+    console.log("Pickup Location:", pickupLocation);
+  }, [pickupLocation]);
+
+  useEffect(() => {
+    console.log("Dropoff Location:", destinationLocation);
+  }, [destinationLocation]);
+
   const [tripType, setTripType] = useState();
   const handleChange = (event) => {
     setTripType(event.target.value);
@@ -52,6 +105,35 @@ function CreateTrip() {
   const handleChangeServiceType = (event) => {
     setValue(event.target.value);
   };
+
+  useEffect(() => {
+    // Check if both pickup and destination are selected
+    if (pickupLocation && destinationLocation) {
+      // Make API call to get directions (length of the trip)
+      fetchDirection(pickupLocation, destinationLocation)
+        .then((distance) => {
+          // Update state with trip distance
+          setTripDistance(distance);
+        })
+        .catch((error) => {
+          console.error("Error fetching directions:", error);
+        });
+    }
+  }, [pickupLocation, destinationLocation]);
+
+  useEffect(() => {
+    if (pickupLocation && destinationLocation && tripType && tripServiceType) {
+      // Make API call to calculate trip fare
+      fetchCalculateFare(tripDistance, tripType, tripServiceType)
+        .then((fare) => {
+          // Update state with calculated trip fare
+          setTripFare(fare);
+        })
+        .catch((error) => {
+          console.error("Error calculating trip fare:", error);
+        });
+    }
+  });
 
   return (
     <>
@@ -93,12 +175,15 @@ function CreateTrip() {
                       name="customerPhoneNumber"
                       defaultValue=""
                       type="search"
+                      onChange={handlePhoneNumberChange}
                     />
                     <TextField
                       required
                       id="outlined-required"
                       label="Full Name"
                       defaultValue=""
+                      value={customerName}
+                      onChange={(event) => setCustomerName(event.target.value)}
                     />
                   </div>
                 </Box>
@@ -119,10 +204,20 @@ function CreateTrip() {
                   autoComplete="off"
                 >
                   <div>
-                    <GoogleMaps />
+                    <GoogleMapsAutocomplete
+                      label="Chọn điểm đón"
+                      onPlaceSelect={(location) =>
+                        handleLocationSelect(location, false)
+                      }
+                    />
                   </div>
                   <div>
-                    <GoogleMaps />
+                    <GoogleMapsAutocomplete
+                      label="Chọn điểm tới"
+                      onPlaceSelect={(location) =>
+                        handleLocationSelect(location, true)
+                      }
+                    />
                   </div>
                 </Box>
               </CardContent>
@@ -176,6 +271,14 @@ function CreateTrip() {
                         label="Pickup Time"
                         type="search"
                       />
+                    </div>
+                  )}
+                  {tripDistance && tripFare && (
+                    <div>
+                      <p>
+                        Khoảng cách: {(tripDistance / 1000).toFixed(2)} KM, Giá
+                        tiền: {tripFare.toLocaleString()} VND
+                      </p>
                     </div>
                   )}
                   <div>

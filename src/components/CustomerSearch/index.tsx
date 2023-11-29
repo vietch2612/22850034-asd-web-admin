@@ -1,9 +1,16 @@
 import * as React from "react";
+import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import parse from "autosuggest-highlight/parse";
 import { debounce } from "@mui/material/utils";
+
+// This key was created specifically for the demo in mui.com.
+// You need to create a new one for your application.
+const GOOGLE_MAPS_API_KEY = "AIzaSyC3aviU6KHXAjoSnxcw6qbOhjnFctbxPkE";
 
 function loadScript(src: string, position: HTMLElement | null, id: string) {
   if (!position) {
@@ -23,30 +30,28 @@ interface MainTextMatchedSubstrings {
   offset: number;
   length: number;
 }
-
 interface StructuredFormatting {
   main_text: string;
   secondary_text: string;
   main_text_matched_substrings?: readonly MainTextMatchedSubstrings[];
 }
-
 interface PlaceType {
   description: string;
   structured_formatting: StructuredFormatting;
 }
 
-export default function CustomerSearch() {
+export default function GoogleMaps() {
   const [value, setValue] = React.useState<PlaceType | null>(null);
   const [inputValue, setInputValue] = React.useState("");
   const [options, setOptions] = React.useState<readonly PlaceType[]>([]);
   const loaded = React.useRef(false);
 
   if (typeof window !== "undefined" && !loaded.current) {
-    if (!document.querySelector("#customer-search")) {
+    if (!document.querySelector("#google-maps")) {
       loadScript(
-        `https://localhost:4000/api/customers/search?phone=`,
+        `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`,
         document.querySelector("head"),
-        "customer-search"
+        "google-maps"
       );
     }
 
@@ -110,7 +115,7 @@ export default function CustomerSearch() {
 
   return (
     <Autocomplete
-      id="customer_search"
+      id="google-map-demo"
       sx={{ width: 300 }}
       getOptionLabel={(option) =>
         typeof option === "string" ? option : option.description
@@ -130,7 +135,7 @@ export default function CustomerSearch() {
         setInputValue(newInputValue);
       }}
       renderInput={(params) => (
-        <TextField {...params} label="Vui lòng nhập địa chỉ" fullWidth />
+        <TextField {...params} label="Add a location" fullWidth />
       )}
       renderOption={(props, option) => {
         const matches =
@@ -146,13 +151,28 @@ export default function CustomerSearch() {
 
         return (
           <li {...props}>
-            {/* Customize how the option is displayed */}
-            <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-              {option.description}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {option.structured_formatting.secondary_text}
-            </Typography>
+            <Grid container alignItems="center">
+              <Grid item sx={{ display: "flex", width: 44 }}>
+                <LocationOnIcon sx={{ color: "text.secondary" }} />
+              </Grid>
+              <Grid
+                item
+                sx={{ width: "calc(100% - 44px)", wordWrap: "break-word" }}
+              >
+                {parts.map((part, index) => (
+                  <Box
+                    key={index}
+                    component="span"
+                    sx={{ fontWeight: part.highlight ? "bold" : "regular" }}
+                  >
+                    {part.text}
+                  </Box>
+                ))}
+                <Typography variant="body2" color="text.secondary">
+                  {option.structured_formatting.secondary_text}
+                </Typography>
+              </Grid>
+            </Grid>
           </li>
         );
       }}
