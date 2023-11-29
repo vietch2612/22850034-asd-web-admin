@@ -8,8 +8,15 @@ import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import GoogleMapsAutocomplete from "@/components/GoogleMapsAutocomplete";
 
+import { useRouter } from "next/router";
 import { fetchDirection } from "pages/api/GoogleMapsApi";
-import { fetchCalculateFare, fetchCustomerInfo } from "pages/api/BackendApi";
+
+import {
+  createCustomer,
+  createTrip,
+  fetchCalculateFare,
+  fetchCustomerInfo,
+} from "pages/api/BackendApi";
 
 import {
   Container,
@@ -19,10 +26,10 @@ import {
   CardContent,
   Divider,
   Button,
+  Snackbar,
 } from "@mui/material";
 
 import { useEffect, useState } from "react";
-import { set } from "nprogress";
 
 const carTypes = [
   {
@@ -54,6 +61,9 @@ function CreateTrip() {
   const [customerPhoneNumber, setCustomerPhoneNumber] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [customerId, setCustomerId] = useState(null);
+  const [popupVisible, setPopupVisible] = useState(false);
+  const [tripId, setTripId] = useState(null);
+  const router = useRouter();
 
   const handleLocationSelect = (location, isDestination) => {
     console.log("handleLocationSelect called");
@@ -72,19 +82,20 @@ function CreateTrip() {
     setCustomerPhoneNumber(phoneNumber);
 
     try {
-      // Fetch customer information based on phone number
       const customerInfo = await fetchCustomerInfo(phoneNumber);
 
       if (!customerInfo) {
         setCustomerName("");
+        setCustomerId(null);
       }
 
-      // Update state with the fetched customer information
-      // For example, if customerInfo has a 'name' property:
       setCustomerName(customerInfo["name"]);
+      setCustomerId(customerInfo["id"]);
+      console.log("Customer Info:", customerInfo);
       console.log("Customer Name:", customerName);
+      console.log("Customer ID:", customerId);
     } catch (error) {
-      // Handle errors, e.g., display an error message to the user
+      console.log("Error fetching customer information:", error);
     }
   };
 
@@ -107,12 +118,9 @@ function CreateTrip() {
   };
 
   useEffect(() => {
-    // Check if both pickup and destination are selected
     if (pickupLocation && destinationLocation) {
-      // Make API call to get directions (length of the trip)
       fetchDirection(pickupLocation, destinationLocation)
         .then((distance) => {
-          // Update state with trip distance
           setTripDistance(distance);
         })
         .catch((error) => {
@@ -123,10 +131,8 @@ function CreateTrip() {
 
   useEffect(() => {
     if (pickupLocation && destinationLocation && tripType && tripServiceType) {
-      // Make API call to calculate trip fare
       fetchCalculateFare(tripDistance, tripType, tripServiceType)
         .then((fare) => {
-          // Update state with calculated trip fare
           setTripFare(fare);
         })
         .catch((error) => {
@@ -134,6 +140,44 @@ function CreateTrip() {
         });
     }
   });
+
+  const handleCreateTrip = async () => {
+    try {
+      if (!customerId) {
+        const customer = await createCustomer(
+          customerPhoneNumber,
+          customerName
+        );
+        setCustomerId(customer["id"]);
+        console.log("Creating a new customer ID");
+      }
+
+      // Make API call to create a trip
+      const trip = await createTrip(
+        pickupLocation,
+        destinationLocation,
+        customerId,
+        tripServiceType,
+        tripDistance,
+        tripFare
+      );
+
+      console.log("Trip created successfully:", trip);
+
+      setTripId(trip.id);
+      setPopupVisible(true);
+
+      setTimeout(() => {
+        router.push("/management/transactions");
+      }, 3000);
+    } catch (error) {
+      console.error("Error creating trip:", error);
+    }
+  };
+
+  const closePopup = () => {
+    setPopupVisible(false);
+  };
 
   return (
     <>
@@ -286,10 +330,19 @@ function CreateTrip() {
                       sx={{ margin: 1 }}
                       variant="contained"
                       color="primary"
+                      onClick={handleCreateTrip}
                     >
                       Create
                     </Button>
                   </div>
+                  {popupVisible && (
+                    <Snackbar
+                      open={popupVisible}
+                      autoHideDuration={6000}
+                      onClose={closePopup}
+                      message="Tạo chuyến đi thành công!"
+                    />
+                  )}
                 </Box>
               </CardContent>
             </Card>

@@ -44,7 +44,7 @@ export const fetchCustomerInfo = async (custonerPhoneNumber) => {
     }
 };
 
-export const createCustomer = async (custonerPhoneNumber, customerName) => {
+export const createCustomer = async (phoneNumber, name) => {
     try {
         const response = await fetch(`${BACKEND_HOST}/api/trips/calculate-fare`, {
             method: 'POST',
@@ -53,24 +53,22 @@ export const createCustomer = async (custonerPhoneNumber, customerName) => {
                 'Authorization': 'Bearer Test',
             },
             body: JSON.stringify({
-                length,
-                tripType,
-                tripServiceType,
+                phoneNumber,
+                name
             }),
         });
 
-        const data = await response.json();
-        const fare = data.fare;
-        console.log('Trip Fare:', fare);
-        return fare;
+        const customer = await response.json();
+        console.log('Customer:', customer);
+        return customer;
     } catch (error) {
-        console.error('Error calculating trip fare:', error);
+        console.error('Error creating customer:', error);
         throw error;
     }
 };
 
 
-export const createTrip = async (pickupLocation, dropoffLocation, customerName, customerPhoneNumber, tripServiceType, length, fare) => {
+export const createTrip = async (pickupLocation, dropoffLocation, customerId, tripServiceType, distance, fare) => {
     try {
         const response = await fetch(`${BACKEND_HOST}/api/trips`, {
             method: 'POST',
@@ -79,18 +77,24 @@ export const createTrip = async (pickupLocation, dropoffLocation, customerName, 
                 'Authorization': 'Bearer Test',
             },
             body: JSON.stringify({
-                length,
-                tripType,
-                tripServiceType,
+                pickupLocation: pickupLocation.structured_formatting.main_text,
+                pickupLocationLat: pickupLocation.location.lat,
+                pickupLocationLong: pickupLocation.location.lng,
+                dropoffLocation: dropoffLocation.structured_formatting.main_text,
+                dropoffLocationLat: dropoffLocation.location.lat,
+                dropoffLocationLong: dropoffLocation.location.lng,
+                customerId,
+                fare,
+                distance,
+                serviceTypeId: tripServiceType
             }),
         });
 
-        const data = await response.json();
-        const fare = data.fare;
-        console.log('Trip Fare:', fare);
-        return fare;
+        const trip = await response.json();
+        console.log('Trip:', trip);
+        return trip;
     } catch (error) {
-        console.error('Error calculating trip fare:', error);
+        console.error('Error creating a new trip: ', error);
         throw error;
     }
 };

@@ -227,7 +227,11 @@ const RecentOrdersTable: FC<RecentOrdersTableProps> = ({ tripOrders }) => {
                       color="text.primary"
                       gutterBottom
                     >
-                      {tripOrder.Driver.Car.name}
+                      {tripOrder.Driver ? (
+                        tripOrder.Driver.Car.name
+                      ) : (
+                        <span style={{ color: "red" }}>Chưa có tài xế</span>
+                      )}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       {tripOrder.ServiceType.name}
@@ -242,9 +246,6 @@ const RecentOrdersTable: FC<RecentOrdersTableProps> = ({ tripOrders }) => {
                     >
                       {tripOrder.pickupLocation}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {tripOrder.pickupLocation}
-                    </Typography>
                   </TableCell>
                   <TableCell style={{ maxWidth: "200px" }}>
                     <Typography
@@ -253,9 +254,6 @@ const RecentOrdersTable: FC<RecentOrdersTableProps> = ({ tripOrders }) => {
                       color="text.primary"
                       gutterBottom
                     >
-                      {tripOrder.dropoffLocation}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
                       {tripOrder.dropoffLocation}
                     </Typography>
                   </TableCell>
