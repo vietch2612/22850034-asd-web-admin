@@ -6,22 +6,47 @@ import {
   CardContent,
   Divider,
   Button,
-  Checkbox
-} from '@mui/material';
+  Checkbox,
+} from "@mui/material";
 
-import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
-import BaseLayout from '@/layouts/BaseLayout';
+import Box from "@mui/material/Box";
+import TextField from "@mui/material/TextField";
+import BaseLayout from "@/layouts/BaseLayout";
+import { useState } from "react";
+import { useRouter } from "next/router";
 
-function CreateTrip() {
+const API_GATEWAY_HOSTHOST: string = process.env.NEXT_PUBLIC_API_GATEWAY_HOST!;
+
+function Login() {
+  const router = useRouter();
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+
+  const handleLogin = async () => {
+    const response = await fetch(`${API_GATEWAY_HOSTHOST}/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ phoneNumber: username, password: password }),
+    });
+
+    if (response.ok) {
+      const { token } = await response.json();
+      router.push("/");
+    } else {
+      console.error("Login failed");
+    }
+  };
+
   return (
     <Box
       sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh'
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
       }}
     >
       <Container maxWidth="lg">
@@ -33,15 +58,15 @@ function CreateTrip() {
           spacing={3}
         >
           <Grid item xs={12}>
-            <Card sx={{ width: '100%' }}>
+            <Card sx={{ width: "100%" }}>
               {/* Add this line to make the Card full width */}
               <CardHeader title="HCMUS Cab Admin Portal Login" />
               <Divider />
-              <CardContent sx={{ textAlign: 'center' }}>
+              <CardContent sx={{ textAlign: "center" }}>
                 <Box
                   component="form"
                   sx={{
-                    '& .MuiTextField-root': { m: 1, width: '50ch' }
+                    "& .MuiTextField-root": { m: 1, width: "50ch" },
                   }}
                   noValidate
                   autoComplete="off"
@@ -49,17 +74,19 @@ function CreateTrip() {
                   <div>
                     <TextField
                       required
-                      id="username"
-                      label="Username"
-                      type="search"
+                      type="text"
+                      placeholder="Username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
                     />
                   </div>
                   <div>
                     <TextField
                       required
-                      id="outlined-search"
-                      label="Password"
                       type="password"
+                      placeholder="Password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                     />
                   </div>
                   <div>
@@ -72,6 +99,7 @@ function CreateTrip() {
                       variant="contained"
                       color="primary"
                       size="large"
+                      onClick={handleLogin}
                     >
                       Login
                     </Button>
@@ -86,6 +114,6 @@ function CreateTrip() {
   );
 }
 
-CreateTrip.getLayout = (page) => <BaseLayout>{page}</BaseLayout>;
+Login.getLayout = (page) => <BaseLayout>{page}</BaseLayout>;
 
-export default CreateTrip;
+export default Login;
