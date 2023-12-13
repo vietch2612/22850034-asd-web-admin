@@ -1,3 +1,5 @@
+import { Dayjs } from "dayjs";
+
 const BACKEND_HOST: string = process.env.NEXT_PUBLIC_BACKEND_HOST!;
 
 interface CalculateFareResponse {
@@ -34,6 +36,9 @@ export const fetchCalculateFare = async (
 };
 
 interface CustomerInfo {
+  name: string;
+  id: null;
+  CustomerType: any;
   // Define the structure of your customer info here
 }
 
@@ -62,6 +67,7 @@ export const fetchCustomerInfo = async (
 };
 
 interface CreateCustomerResponse {
+  id: null;
   // Define the structure of your create customer response here
 }
 
@@ -101,7 +107,8 @@ export const createTrip = async (
   customerId: string,
   tripServiceType: string,
   distance: number,
-  fare: number
+  fare: number,
+  scheduleTime: Dayjs
 ): Promise<CreateTripResponse> => {
   try {
     const response = await fetch(`${BACKEND_HOST}/api/trips`, {
@@ -121,6 +128,7 @@ export const createTrip = async (
         fare,
         distance,
         serviceTypeId: tripServiceType,
+        scheduleTime: scheduleTime.valueOf(),
       }),
     });
 

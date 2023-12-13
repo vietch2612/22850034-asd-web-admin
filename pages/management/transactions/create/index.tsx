@@ -9,6 +9,7 @@ import TextField from "@mui/material/TextField";
 import GoogleMapsAutocomplete from "@/components/GoogleMapsAutocomplete";
 
 import { useRouter } from "next/router";
+import { useState, useEffect } from "react";
 import { fetchDirection } from "pages/api/GoogleMapsApi";
 
 import {
@@ -17,7 +18,6 @@ import {
   fetchCalculateFare,
   fetchCustomerInfo,
 } from "pages/api/BackendApi";
-
 import {
   Container,
   Grid,
@@ -27,9 +27,13 @@ import {
   Divider,
   Button,
   Snackbar,
+  Typography,
 } from "@mui/material";
 
-import { useEffect, useState } from "react";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs, { Dayjs } from "dayjs";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 
 const carTypes = [
   {
@@ -60,21 +64,18 @@ function CreateTrip() {
   const [tripDistance, setTripDistance] = useState(null);
   const [customerPhoneNumber, setCustomerPhoneNumber] = useState("");
   const [customerName, setCustomerName] = useState("");
+  const [customerType, setCustomerType] = useState("");
   const [customerId, setCustomerId] = useState(null);
   const [popupVisible, setPopupVisible] = useState(false);
-  const [tripId, setTripId] = useState(null);
+  const [scheduleTime, setScheduleTime] = useState<Dayjs | null>(dayjs());
   const router = useRouter();
 
   const handleLocationSelect = (location, isDestination) => {
-    console.log("handleLocationSelect called");
     if (isDestination) {
       setDestinationLocation(location);
     } else {
       setPickupLocation(location);
     }
-
-    console.log("Pickup Location:", pickupLocation);
-    console.log("Dropoff Location:", destinationLocation);
   };
 
   const handlePhoneNumberChange = async (event) => {
@@ -89,30 +90,24 @@ function CreateTrip() {
         setCustomerId(null);
       }
 
-      setCustomerName(customerInfo["name"]);
-      setCustomerId(customerInfo["id"]);
-      console.log("Customer Info:", customerInfo);
-      console.log("Customer Name:", customerName);
-      console.log("Customer ID:", customerId);
+      setCustomerName(customerInfo?.name || "");
+      setCustomerId(customerInfo?.id || null);
+      setCustomerType(customerInfo?.CustomerType?.name || "");
     } catch (error) {
-      console.log("Error fetching customer information:", error);
+      console.error("Error fetching customer information:", error);
     }
   };
 
   useEffect(() => {
-    console.log("Pickup Location:", pickupLocation);
-  }, [pickupLocation]);
+    console.log("scheduledTime:", scheduleTime);
+  }, [scheduleTime]);
 
-  useEffect(() => {
-    console.log("Dropoff Location:", destinationLocation);
-  }, [destinationLocation]);
-
-  const [tripType, setTripType] = useState();
+  const [tripType, setTripType] = useState("");
   const handleChange = (event) => {
     setTripType(event.target.value);
   };
 
-  const [tripServiceType, setValue] = useState();
+  const [tripServiceType, setValue] = useState("");
   const handleChangeServiceType = (event) => {
     setValue(event.target.value);
   };
@@ -148,23 +143,22 @@ function CreateTrip() {
           customerPhoneNumber,
           customerName
         );
-        setCustomerId(customer["id"]);
+        setCustomerId(customer?.id || null);
         console.log("Creating a new customer ID");
       }
 
-      // Make API call to create a trip
       const trip = await createTrip(
         pickupLocation,
         destinationLocation,
         customerId,
         tripServiceType,
         tripDistance,
-        tripFare
+        tripFare,
+        scheduleTime
       );
 
       console.log("Trip created successfully:", trip);
 
-      setTripId(trip.id);
       setPopupVisible(true);
 
       setTimeout(() => {
@@ -187,7 +181,7 @@ function CreateTrip() {
       <PageTitleWrapper>
         <PageTitle
           heading="Tạo chuyến đi mới"
-          subHeading="Creating a new trip for whose does not have the HCMUSCab app"
+          subHeading="Creating a new trip for those who do not have the HCMUSCab app"
         />
       </PageTitleWrapper>
       <Container maxWidth="lg">
@@ -200,13 +194,13 @@ function CreateTrip() {
         >
           <Grid item xs={12}>
             <Card>
-              <CardHeader title="Customer Information" />
+              <CardHeader title="Thông tin khách hàng" />
               <Divider />
               <CardContent>
                 <Box
                   component="form"
                   sx={{
-                    "& .MuiTextField-root": { m: 1, width: "50ch" },
+                    "& .MuiTextField-root": { m: 1, width: "30ch" },
                   }}
                   noValidate
                   autoComplete="off"
@@ -215,7 +209,7 @@ function CreateTrip() {
                     <TextField
                       required
                       id="outlined-required"
-                      label="Customer Phone Number"
+                      label="Số điện thoại khách hàng"
                       name="customerPhoneNumber"
                       defaultValue=""
                       type="search"
@@ -224,10 +218,18 @@ function CreateTrip() {
                     <TextField
                       required
                       id="outlined-required"
-                      label="Full Name"
+                      label="Tên khách hàng"
                       defaultValue=""
                       value={customerName}
                       onChange={(event) => setCustomerName(event.target.value)}
+                    />
+                    <TextField
+                      disabled={true}
+                      id="outlined-required"
+                      label="Hạng khách hàng"
+                      defaultValue=""
+                      value={customerType}
+                      onChange={(event) => setCustomerType(event.target.value)}
                     />
                   </div>
                 </Box>
@@ -236,13 +238,13 @@ function CreateTrip() {
           </Grid>
           <Grid item xs={12}>
             <Card>
-              <CardHeader title="Trip Information" />
+              <CardHeader title="Thông tin chuyến đi" />
               <Divider />
               <CardContent>
                 <Box
                   component="form"
                   sx={{
-                    "& .MuiTextField-root": { m: 1, width: "102ch" },
+                    "& .MuiTextField-root": { m: 1, width: "94ch" },
                   }}
                   noValidate
                   autoComplete="off"
@@ -269,13 +271,13 @@ function CreateTrip() {
           </Grid>
           <Grid item xs={12}>
             <Card>
-              <CardHeader title="Car Type & Payment Type" />
+              <CardHeader title="Loại xe và loại dịch vụ" />
               <Divider />
               <CardContent>
                 <Box
                   component="form"
                   sx={{
-                    "& .MuiTextField-root": { m: 1, width: "50ch" },
+                    "& .MuiTextField-root": { m: 1, width: "30ch" },
                   }}
                   noValidate
                   autoComplete="off"
@@ -284,7 +286,7 @@ function CreateTrip() {
                     <TextField
                       id="outlined-select-currency"
                       select
-                      label="Car Type"
+                      label="Loại xe"
                       value={tripType}
                       onChange={handleChange}
                     >
@@ -297,7 +299,7 @@ function CreateTrip() {
                     <TextField
                       id="outlined-select-currency"
                       select
-                      label="Service Type"
+                      label="Loại dịch vụ"
                       value={tripServiceType}
                       onChange={handleChangeServiceType}
                     >
@@ -307,22 +309,22 @@ function CreateTrip() {
                         </MenuItem>
                       ))}
                     </TextField>
+                    {tripServiceType === "2" && (
+                      <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <DateTimePicker
+                          label="Hẹn giờ đóns"
+                          value={scheduleTime}
+                          onChange={(newValue) => setScheduleTime(newValue)}
+                        />
+                      </LocalizationProvider>
+                    )}
                   </div>
-                  {tripServiceType === "2" && ( // Only display for VIP serviceType
-                    <div>
-                      <TextField
-                        id="scheduledTime"
-                        label="Pickup Time"
-                        type="search"
-                      />
-                    </div>
-                  )}
                   {tripDistance && tripFare && (
                     <div>
-                      <p>
+                      <Typography variant="body1" gutterBottom sx={{ ml: 1 }}>
                         Khoảng cách: {(tripDistance / 1000).toFixed(2)} KM, Giá
                         tiền: {tripFare.toLocaleString()} VND
-                      </p>
+                      </Typography>
                     </div>
                   )}
                   <div>
