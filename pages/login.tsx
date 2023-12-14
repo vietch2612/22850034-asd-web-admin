@@ -32,7 +32,10 @@ function Login() {
     });
 
     if (response.ok) {
-      const { token } = await response.json();
+      console.log("Login success");
+      const user = await response.json();
+      localStorage.setItem("userToken", user["token"]);
+      localStorage.setItem("userInfo", JSON.stringify(user));
       router.push("/");
     } else {
       console.error("Login failed");
@@ -59,7 +62,6 @@ function Login() {
         >
           <Grid item xs={12}>
             <Card sx={{ width: "100%" }}>
-              {/* Add this line to make the Card full width */}
               <CardHeader title="HCMUS Cab Admin Portal Login" />
               <Divider />
               <CardContent sx={{ textAlign: "center" }}>

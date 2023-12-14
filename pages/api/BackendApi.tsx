@@ -1,9 +1,21 @@
 import { Dayjs } from "dayjs";
 
 const BACKEND_HOST: string = process.env.NEXT_PUBLIC_BACKEND_HOST!;
-const headers = {
-  "Content-Type": "application/json",
-  Authorization: "Bearer Test",
+
+const getUserToken = (): string | null => {
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("userToken");
+    return token || null;
+  }
+  return null;
+};
+
+const getHeaders = async () => {
+  const token = getUserToken();
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
 };
 
 interface CalculateFareResponse {
@@ -16,6 +28,7 @@ export const fetchCalculateFare = async (
   tripServiceType: string
 ): Promise<number> => {
   try {
+    const headers = await getHeaders();
     const response = await fetch(`${BACKEND_HOST}/api/trips/calculate-fare`, {
       method: "POST",
       headers: headers,
@@ -38,16 +51,18 @@ export const fetchCalculateFare = async (
 
 export const fetchStatistics = async (): Promise<number> => {
   try {
+    const headers = await getHeaders();
+
     const response = await fetch(`${BACKEND_HOST}/api/statistics`, {
       method: "GET",
       headers: headers,
+      credentials: "same-origin",
     });
 
     const data = await response.json();
-    console.log("Statistics:", data);
     return data;
   } catch (error) {
-    console.error("Error calculating trip fare:", error);
+    console.error("Error getting statistics: ", error);
     throw error;
   }
 };
@@ -85,7 +100,6 @@ export const fetchCustomerInfo = async (
 
 interface CreateCustomerResponse {
   id: null;
-  // Define the structure of your create customer response here
 }
 
 export const createCustomer = async (
