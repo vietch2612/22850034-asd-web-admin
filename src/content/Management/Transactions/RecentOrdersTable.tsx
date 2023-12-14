@@ -1,16 +1,12 @@
 import { FC, ChangeEvent, useState } from "react";
-import { format } from "date-fns";
 import numeral from "numeral";
 import PropTypes from "prop-types";
 import {
-  Tooltip,
   Divider,
   Box,
   FormControl,
   InputLabel,
   Card,
-  Checkbox,
-  IconButton,
   Table,
   TableBody,
   TableCell,
@@ -21,7 +17,6 @@ import {
   Select,
   MenuItem,
   Typography,
-  useTheme,
   CardHeader,
 } from "@mui/material";
 
@@ -32,7 +27,6 @@ interface RecentOrdersTableProps {
   className?: string;
   tripOrders: Trip[];
 }
-
 interface Filters {
   status?: TripStatus;
 }
@@ -40,28 +34,32 @@ interface Filters {
 const getStatusLabel = (tripStatus: TripStatus): JSX.Element => {
   const map = {
     0: {
-      text: "Submitted",
-      color: "warning",
+      text: "Mới tạo",
+      color: "waring",
     },
     1: {
-      text: "warning",
-      color: "success",
+      text: "Đã có tài xế",
+      color: "waring",
     },
     2: {
-      text: "Arrived",
-      color: "warning",
+      text: "Tài xe đến điểm đón",
+      color: "waring",
     },
     3: {
-      text: "Driving",
-      color: "warning",
+      text: "Đang trong chuyến đi",
+      color: "waring",
     },
     4: {
-      text: "Completed",
+      text: "Hoàn thành",
       color: "success",
     },
     5: {
-      text: "Cancelled",
+      text: "Đã huỷ",
       color: "error",
+    },
+    6: {
+      text: "Hẹn giờ",
+      color: "success",
     },
   };
 
@@ -98,29 +96,31 @@ const RecentOrdersTable: FC<RecentOrdersTableProps> = ({ tripOrders }) => {
   });
 
   const statusOptions = [
+    { id: "all", name: "All" },
+    { id: 0, name: "Mới tạo" },
     {
-      id: "all",
-      name: "All",
+      id: 1,
+      name: "Đã có tài xế",
     },
     {
-      id: "submitted",
-      name: "Submitted",
+      id: 2,
+      name: "Tài xe đến điểm đón",
     },
     {
-      id: "arrived",
-      name: "Arrivied",
+      id: 3,
+      name: "Đang trong chuyến đi",
     },
     {
-      id: "driving",
-      name: "Driving",
+      id: 4,
+      name: "Hoàn thành",
     },
     {
-      id: "completed",
-      name: "Completed",
+      id: 5,
+      name: "Đã huỷ",
     },
     {
-      id: "cancelled",
-      name: "Cancelled",
+      id: 6,
+      name: "Hẹn giờ",
     },
   ];
 
@@ -146,7 +146,7 @@ const RecentOrdersTable: FC<RecentOrdersTableProps> = ({ tripOrders }) => {
   };
 
   const filteredTripOrder = applyFilters(tripOrders, filters);
-  const paginatedCryptoOrders = applyPagination(filteredTripOrder, page, limit);
+  const paginatedTrips = applyPagination(filteredTripOrder, page, limit);
 
   return (
     <Card>
@@ -163,7 +163,7 @@ const RecentOrdersTable: FC<RecentOrdersTableProps> = ({ tripOrders }) => {
                   autoWidth
                 >
                   {statusOptions.map((statusOption) => (
-                    <MenuItem key={statusOption.name} value={statusOption.name}>
+                    <MenuItem key={statusOption.id} value={statusOption.id}>
                       {statusOption.name}
                     </MenuItem>
                   ))}
@@ -171,7 +171,7 @@ const RecentOrdersTable: FC<RecentOrdersTableProps> = ({ tripOrders }) => {
               </FormControl>
             </Box>
           }
-          title="Recent Trips"
+          title="Danh sách chuyến đi"
         />
       }
       <Divider />
@@ -180,17 +180,16 @@ const RecentOrdersTable: FC<RecentOrdersTableProps> = ({ tripOrders }) => {
           <TableHead>
             <TableRow>
               <TableCell>ID</TableCell>
-              <TableCell>Customer</TableCell>
-              <TableCell>Type & Service</TableCell>
-              <TableCell>From</TableCell>
-              <TableCell>To</TableCell>
-              <TableCell align="right">Length</TableCell>
-              <TableCell align="right">Status</TableCell>
+              <TableCell>Khách hàng</TableCell>
+              <TableCell>Tài xế</TableCell>
+              <TableCell>Điểm đón</TableCell>
+              <TableCell>Điểm trả</TableCell>
+              <TableCell align="right">Quãng đường</TableCell>
+              <TableCell align="right">Trạng thái</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {paginatedCryptoOrders.map((tripOrder) => {
-              // tripOrder.id;
+            {paginatedTrips.map((tripOrder) => {
               return (
                 <TableRow hover key={tripOrder.id}>
                   <TableCell>
@@ -203,8 +202,9 @@ const RecentOrdersTable: FC<RecentOrdersTableProps> = ({ tripOrders }) => {
                       {tripOrder.id}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {/* {format(tripOrder.tripStartAt, "MMMM dd yyyy")} */}
-                      {tripOrder.createdAt}
+                      {new Date(tripOrder.createdAt).toLocaleString("vi-VN", {
+                        timeZone: "Asia/Ho_Chi_Minh",
+                      })}
                     </Typography>
                   </TableCell>
                   <TableCell>
@@ -264,7 +264,7 @@ const RecentOrdersTable: FC<RecentOrdersTableProps> = ({ tripOrders }) => {
                       color="text.primary"
                       gutterBottom
                     >
-                      {tripOrder.distance}
+                      {tripOrder.distance / 1000} km
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       {numeral(tripOrder.fare).format(`${tripOrder.fare}0,0`)}{" "}

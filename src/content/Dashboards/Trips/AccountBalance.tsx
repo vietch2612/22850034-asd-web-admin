@@ -1,5 +1,4 @@
 import {
-  Button,
   Card,
   Box,
   Grid,
@@ -12,12 +11,17 @@ import {
   ListItem,
   ListItemText,
   List,
-  ListItemAvatar
-} from '@mui/material';
-import TrendingUp from '@mui/icons-material/TrendingUp';
-import Text from 'src/components/Text';
-import { Chart } from 'src/components/Chart';
-import type { ApexOptions } from 'apexcharts';
+  ListItemAvatar,
+} from "@mui/material";
+import TrendingUp from "@mui/icons-material/TrendingUp";
+import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
+import LocalTaxiIcon from "@mui/icons-material/LocalTaxi";
+import Text from "src/components/Text";
+import { Chart } from "src/components/Chart";
+import type { ApexOptions } from "apexcharts";
+
+import useAccountBalanceData from "./AccountBlanceData";
+import numeral from "numeral";
 
 const AvatarSuccess = styled(Avatar)(
   ({ theme }) => `
@@ -39,7 +43,7 @@ const ListItemAvatarWrapper = styled(ListItemAvatar)(
   padding: ${theme.spacing(0.5)};
   border-radius: 60px;
   background: ${
-    theme.palette.mode === 'dark'
+    theme.palette.mode === "dark"
       ? theme.colors.alpha.trueWhite[30]
       : alpha(theme.colors.alpha.black[100], 0.07)
   };
@@ -56,31 +60,48 @@ const ListItemAvatarWrapper = styled(ListItemAvatar)(
 );
 
 function AccountBalance() {
+  const [
+    totalRevenue,
+    totalCustomers,
+    totalDrivers,
+    totalTrips,
+    changeOnThisMonth,
+    totalTripsByStatus,
+  ] = useAccountBalanceData();
   const theme = useTheme();
 
   const chartOptions: ApexOptions = {
     chart: {
-      background: 'transparent',
+      background: "transparent",
       stacked: false,
       toolbar: {
-        show: false
-      }
+        show: false,
+      },
     },
     plotOptions: {
       pie: {
         donut: {
-          size: '60%'
-        }
-      }
+          size: "60%",
+        },
+      },
     },
-    colors: ['#ff9900', '#1c81c2', '#333', '#5c6ac0'],
+    colors: [
+      "#ff9900",
+      "#1c81c2",
+      "#333",
+      "#5c6ac0",
+      "#ff9900",
+      "#1c81c2",
+      "#333",
+      "#5c6ac0",
+    ],
     dataLabels: {
       enabled: true,
       formatter: function (val) {
-        return val + '%';
+        return val + "%";
       },
       style: {
-        colors: [theme.colors.alpha.trueWhite[100]]
+        colors: [theme.colors.alpha.trueWhite[100]],
       },
       background: {
         enabled: true,
@@ -95,8 +116,8 @@ function AccountBalance() {
           left: 1,
           blur: 1,
           color: theme.colors.alpha.black[70],
-          opacity: 0.5
-        }
+          opacity: 0.5,
+        },
       },
       dropShadow: {
         enabled: true,
@@ -104,28 +125,42 @@ function AccountBalance() {
         left: 1,
         blur: 1,
         color: theme.colors.alpha.black[50],
-        opacity: 0.5
-      }
+        opacity: 0.5,
+      },
     },
     fill: {
-      opacity: 1
+      opacity: 1,
     },
-    labels: ['4-Seat', '7-Seat'],
+    labels: ["0", "1", "2", "3", "4", "5", "6", "7", "8"],
     legend: {
       labels: {
-        colors: theme.colors.alpha.trueWhite[100]
+        colors: theme.colors.alpha.trueWhite[100],
       },
-      show: false
+      show: false,
     },
     stroke: {
-      width: 0
+      width: 0,
     },
     theme: {
-      mode: theme.palette.mode
-    }
+      mode: theme.palette.mode,
+    },
   };
 
-  const chartSeries = [80, 20];
+  const chartSeries = totalTripsByStatus
+    ? totalTripsByStatus.map(
+        (statusItem: any) => (statusItem.total / totalTrips) * 100
+      )
+    : [0, 0];
+
+  const statusNamesMap = {
+    0: "Mới tạo",
+    1: "Đã có tài xế",
+    2: "Tài xe đến điểm đón",
+    3: "Đang trong chuyến đi",
+    4: "Hoàn thành",
+    5: "Đã huỷ",
+    6: "Hẹn giờ",
+  };
 
   return (
     <Card>
@@ -134,40 +169,41 @@ function AccountBalance() {
           <Box p={4}>
             <Typography
               sx={{
-                pb: 3
+                pb: 3,
               }}
               variant="h4"
             >
-              Total Revenue
+              Tổng doanh thu
             </Typography>
             <Box>
               <Typography variant="h1" gutterBottom>
-                123,456,789 VND
+                {numeral(totalRevenue).format(`${totalRevenue}0,0`)}
+                {" VND"}
               </Typography>
               <Typography
                 variant="h4"
                 fontWeight="normal"
                 color="text.secondary"
               >
-                1,234 Total trips
+                {totalTrips} chuyến đi
               </Typography>
               <Box
                 display="flex"
                 sx={{
-                  py: 4
+                  py: 4,
                 }}
                 alignItems="center"
               >
                 <AvatarSuccess
                   sx={{
-                    mr: 2
+                    mr: 2,
                   }}
                   variant="rounded"
                 >
                   <TrendingUp fontSize="large" />
                 </AvatarSuccess>
                 <Box>
-                  <Typography variant="h4">+ 30%</Typography>
+                  <Typography variant="h4">+ {changeOnThisMonth}%</Typography>
                   <Typography variant="subtitle2" noWrap>
                     this month
                   </Typography>
@@ -178,7 +214,7 @@ function AccountBalance() {
         </Grid>
         <Grid
           sx={{
-            position: 'relative'
+            position: "relative",
           }}
           display="flex"
           alignItems="center"
@@ -189,7 +225,7 @@ function AccountBalance() {
           <Box
             component="span"
             sx={{
-              display: { xs: 'none', md: 'inline-block' }
+              display: { xs: "none", md: "inline-block" },
             }}
           >
             <Divider absolute orientation="vertical" />
@@ -215,55 +251,37 @@ function AccountBalance() {
                 <List
                   disablePadding
                   sx={{
-                    width: '100%'
+                    width: "100%",
                   }}
                 >
-                  <ListItem disableGutters>
-                    <ListItemAvatarWrapper>
-                      <img
-                        alt="4-Seat"
-                        src="/static/images/placeholders/illustrations/6.png"
+                  {totalTripsByStatus?.map((statusItem: any) => (
+                    <ListItem key={statusItem.status} disableGutters>
+                      <ListItemAvatarWrapper>
+                        {statusItem.status === 4 ? (
+                          <DirectionsCarIcon fontSize="large" />
+                        ) : (
+                          <LocalTaxiIcon fontSize="large" />
+                        )}
+                      </ListItemAvatarWrapper>
+                      <ListItemText
+                        primary={statusNamesMap[statusItem.status]}
+                        primaryTypographyProps={{
+                          variant: "h5",
+                          noWrap: true,
+                        }}
+                        secondary={`Total trips: ${statusItem.total}`}
+                        secondaryTypographyProps={{
+                          variant: "subtitle2",
+                          noWrap: true,
+                        }}
                       />
-                    </ListItemAvatarWrapper>
-                    <ListItemText
-                      primary="4-Seat"
-                      primaryTypographyProps={{ variant: 'h5', noWrap: true }}
-                      secondary="Total trip"
-                      secondaryTypographyProps={{
-                        variant: 'subtitle2',
-                        noWrap: true
-                      }}
-                    />
-                    <Box>
-                      <Typography align="right" variant="h4" noWrap>
-                        80%
-                      </Typography>
-                      <Text color="success">+2.54%</Text>
-                    </Box>
-                  </ListItem>
-                  <ListItem disableGutters>
-                    <ListItemAvatarWrapper>
-                      <img
-                        alt="7-Seat"
-                        src="/static/images/placeholders/illustrations/2.png"
-                      />
-                    </ListItemAvatarWrapper>
-                    <ListItemText
-                      primary="7-Seat"
-                      primaryTypographyProps={{ variant: 'h5', noWrap: true }}
-                      secondary="Total trips"
-                      secondaryTypographyProps={{
-                        variant: 'subtitle2',
-                        noWrap: true
-                      }}
-                    />
-                    <Box>
-                      <Typography align="right" variant="h4" noWrap>
-                        20%
-                      </Typography>
-                      <Text color="error">-1.22%</Text>
-                    </Box>
-                  </ListItem>
+                      <Box>
+                        <Typography align="right" variant="h4" noWrap>
+                          {((statusItem.total / totalTrips) * 100).toFixed(2)}%
+                        </Typography>
+                      </Box>
+                    </ListItem>
+                  ))}
                 </List>
               </Grid>
             </Grid>

@@ -181,7 +181,7 @@ function CreateTrip() {
       <PageTitleWrapper>
         <PageTitle
           heading="Tạo chuyến đi mới"
-          subHeading="Creating a new trip for those who do not have the HCMUSCab app"
+          subHeading="Tạo chuyến đi mới cho khách hàng không sử dụng ứng dụng HCMUBCab hoặc khách hàng mới."
         />
       </PageTitleWrapper>
       <Container maxWidth="lg">
@@ -312,7 +312,7 @@ function CreateTrip() {
                     {tripServiceType === "2" && (
                       <LocalizationProvider dateAdapter={AdapterDayjs}>
                         <DateTimePicker
-                          label="Hẹn giờ đóns"
+                          label="Hẹn giờ đón"
                           value={scheduleTime}
                           onChange={(newValue) => setScheduleTime(newValue)}
                         />

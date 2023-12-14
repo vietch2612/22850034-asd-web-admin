@@ -1,6 +1,10 @@
 import { Dayjs } from "dayjs";
 
 const BACKEND_HOST: string = process.env.NEXT_PUBLIC_BACKEND_HOST!;
+const headers = {
+  "Content-Type": "application/json",
+  Authorization: "Bearer Test",
+};
 
 interface CalculateFareResponse {
   fare: number;
@@ -14,10 +18,7 @@ export const fetchCalculateFare = async (
   try {
     const response = await fetch(`${BACKEND_HOST}/api/trips/calculate-fare`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer Test",
-      },
+      headers: headers,
       body: JSON.stringify({
         length,
         tripType,
@@ -29,6 +30,22 @@ export const fetchCalculateFare = async (
     const fare: number = data.fare;
     console.log("Trip Fare:", fare);
     return fare;
+  } catch (error) {
+    console.error("Error calculating trip fare:", error);
+    throw error;
+  }
+};
+
+export const fetchStatistics = async (): Promise<number> => {
+  try {
+    const response = await fetch(`${BACKEND_HOST}/api/statistics`, {
+      method: "GET",
+      headers: headers,
+    });
+
+    const data = await response.json();
+    console.log("Statistics:", data);
+    return data;
   } catch (error) {
     console.error("Error calculating trip fare:", error);
     throw error;

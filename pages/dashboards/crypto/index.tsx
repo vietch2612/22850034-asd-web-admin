@@ -1,16 +1,16 @@
-import Head from 'next/head';
+import Head from "next/head";
 
-import SidebarLayout from '@/layouts/SidebarLayout';
+import SidebarLayout from "@/layouts/SidebarLayout";
 
-import PageHeader from '@/content/Dashboards/Crypto/PageHeader';
-import PageTitleWrapper from '@/components/PageTitleWrapper';
-import { Container, Grid } from '@mui/material';
-import Footer from '@/components/Footer';
+import PageHeader from "@/content/Dashboards/Trips/PageHeader";
+import PageTitleWrapper from "@/components/PageTitleWrapper";
+import { Container, Grid } from "@mui/material";
+import Footer from "@/components/Footer";
 
-import AccountBalance from '@/content/Dashboards/Crypto/AccountBalance';
-import Wallets from '@/content/Dashboards/Crypto/Wallets';
-import AccountSecurity from '@/content/Dashboards/Crypto/AccountSecurity';
-import WatchList from '@/content/Dashboards/Crypto/WatchList';
+import AccountBalance from "@/content/Dashboards/Trips/AccountBalance";
+import Wallets from "@/content/Dashboards/Crypto/Wallets";
+import AccountSecurity from "@/content/Dashboards/Crypto/AccountSecurity";
+import WatchList from "@/content/Dashboards/Crypto/WatchList";
 
 function DashboardCrypto() {
   return (
