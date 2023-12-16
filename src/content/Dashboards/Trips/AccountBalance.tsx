@@ -153,13 +153,13 @@ function AccountBalance() {
     : [0, 0];
 
   const statusNamesMap = {
-    0: "Mới tạo",
-    1: "Đã có tài xế",
+    0: "Đang tìm kiếm tài xế",
+    1: "Đang trong chuyến",
     2: "Tài xe đến điểm đón",
     3: "Đang trong chuyến đi",
     4: "Hoàn thành",
     5: "Đã huỷ",
-    6: "Hẹn giờ",
+    6: "Hẹn giờ đón",
   };
 
   return (

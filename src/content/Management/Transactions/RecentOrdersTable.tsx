@@ -181,7 +181,7 @@ const RecentOrdersTable: FC<RecentOrdersTableProps> = ({ tripOrders }) => {
             <TableRow>
               <TableCell>ID</TableCell>
               <TableCell>Khách hàng</TableCell>
-              <TableCell>Tài xế</TableCell>
+              <TableCell>Tài xế/Xe</TableCell>
               <TableCell>Điểm đón</TableCell>
               <TableCell>Điểm trả</TableCell>
               <TableCell align="right">Quãng đường</TableCell>
@@ -228,13 +228,14 @@ const RecentOrdersTable: FC<RecentOrdersTableProps> = ({ tripOrders }) => {
                       gutterBottom
                     >
                       {tripOrder.Driver ? (
-                        tripOrder.Driver.Car.name
+                        tripOrder.Driver.name
                       ) : (
                         <span style={{ color: "red" }}>Chưa có tài xế</span>
                       )}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {tripOrder.ServiceType.name}
+                      {tripOrder.ServiceType.name},{" "}
+                      {tripOrder.Driver ? tripOrder.Driver.Car.name : ""}
                     </Typography>
                   </TableCell>
                   <TableCell style={{ maxWidth: "200px" }}>

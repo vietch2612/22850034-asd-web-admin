@@ -35,7 +35,7 @@ export const fetchCalculateFare = async (
       body: JSON.stringify({
         length,
         tripType,
-        tripServiceType,
+        serviceType: tripServiceType,
       }),
     });
 
@@ -78,14 +78,13 @@ export const fetchCustomerInfo = async (
   customerPhoneNumber: string
 ): Promise<CustomerInfo> => {
   try {
+    const headers = await getHeaders();
     const response = await fetch(
       `${BACKEND_HOST}/api/customers/search?phone=${customerPhoneNumber}`,
       {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer Test",
-        },
+        headers: headers,
+        credentials: "same-origin",
       }
     );
 
@@ -107,12 +106,10 @@ export const createCustomer = async (
   name: string
 ): Promise<CreateCustomerResponse> => {
   try {
+    const headers = await getHeaders();
     const response = await fetch(`${BACKEND_HOST}/api/customers/create`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer Test",
-      },
+      headers: headers,
       body: JSON.stringify({
         phoneNumber,
         name,
@@ -142,12 +139,10 @@ export const createTrip = async (
   scheduleTime: Dayjs
 ): Promise<CreateTripResponse> => {
   try {
+    const headers = await getHeaders();
     const response = await fetch(`${BACKEND_HOST}/api/trips`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer Test",
-      },
+      headers: headers,
       body: JSON.stringify({
         pickupLocation: pickupLocation.structured_formatting.main_text,
         pickupLocationLat: pickupLocation.location.lat,
